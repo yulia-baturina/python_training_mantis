@@ -1,0 +1,13 @@
+{
+  "web":{
+    "baseUrl":"http://localhost:8080/mantisbt/",
+    "username":"administrator",
+    "password":"root"
+  },
+  "webadmin":{
+    "baseUrl":"http://localhost:8080/addressbook/",
+    "username":"administrator",
+    "password":"root"
+  }
+
+}
