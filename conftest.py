@@ -2,6 +2,7 @@ __author__ = 'IEUser'
 import pytest
 import json
 import os.path
+import ftputil
 from fixture.application import Application
 
 fixture = None
@@ -15,18 +16,42 @@ def load_config(file):
             target = json.load(f)
     return target
 
+@pytest.fixture(scope="session")
+def config(request):
+    return load_config(request.config.getoption("--target"))
+
 @pytest.fixture
-def app(request):
+def app(request, config):
     global fixture
     browser = request.config.getoption("--browser")
-    web_config = load_config(request.config.getoption("--target"))['web']
 
     if fixture is None or not fixture.is_valid():
-        fixture = Application(browser=browser, baseUrl=web_config['baseUrl'])
-    fixture.session.ensure_login(username=web_config['username'], password=web_config['password'])
+        fixture = Application(browser=browser, config=config)
+    fixture.session.ensure_login(username=config['web']['username'], password=config['web']['password'])
 
     return fixture
 
+@pytest.fixture(scope="session", autouse=True)
+def configure_server(request, config):
+    install_server_configuration(config['ftp']['host'],config['ftp']['username'],config['ftp']['password'])
+    def fin():
+        restore_server_configuration(config['ftp']['host'],config['ftp']['username'],config['ftp']['password'])
+    request.addfinalizer(fin)
+
+def install_server_configuration(host,username,password):
+    with ftputil.FTPHost(host,username,password) as remote:
+        if remote.path.isfile("config.inc.php.back"):
+            remote.remove("config.inc.php.back")
+        if remote.path.isfile("config.inc.php"):
+            remote.rename("config.inc.php","config.inc.php.back")
+        remote.upload(os.path.join(os.path.dirname(__file__), "resources/config.inc.php"), "config.inc.php")
+
+def restore_server_configuration(host,username,password):
+    with ftputil.FTPHost(host,username,password) as remote:
+        if remote.path.isfile("config.inc.php.back"):
+            if remote.path.isfile("config.inc.php"):
+                remote.remove("config.inc.php")
+            remote.rename("config.inc.php.back","config.inc.php")
 
 @pytest.fixture(scope="session", autouse=True)
 def stop(request):
