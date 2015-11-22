@@ -76,3 +76,5 @@ class ProjectHelper:
         wd.find_element_by_xpath("//*[@value='Delete Project']").click()
         self.project_cache=None
 
+    def convert_projects_data_to_projects(self, projects_data):
+        return list(map(lambda x: Project(x.name, x.description), projects_data))

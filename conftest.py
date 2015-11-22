@@ -27,7 +27,7 @@ def app(request, config):
 
     if fixture is None or not fixture.is_valid():
         fixture = Application(browser=browser, config=config)
-    fixture.session.ensure_login(username=config['web']['username'], password=config['web']['password'])
+    # fixture.session.ensure_login(username=config['web']['username'], password=config['web']['password'])
 
     return fixture
 
@@ -40,18 +40,18 @@ def configure_server(request, config):
 
 def install_server_configuration(host,username,password):
     with ftputil.FTPHost(host,username,password) as remote:
-        if remote.path.isfile("config.inc.php.back"):
-            remote.remove("config.inc.php.back")
-        if remote.path.isfile("config.inc.php"):
-            remote.rename("config.inc.php","config.inc.php.back")
-        remote.upload(os.path.join(os.path.dirname(__file__), "resources/config.inc.php"), "config.inc.php")
+        if remote.path.isfile("config_inc.php.back"):
+            remote.remove("config_inc.php.back")
+        if remote.path.isfile("config_inc.php"):
+            remote.rename("config_inc.php","config_inc.php.back")
+        remote.upload(os.path.join(os.path.dirname(__file__), "resources/config_inc.php"), "config_inc.php")
 
 def restore_server_configuration(host,username,password):
     with ftputil.FTPHost(host,username,password) as remote:
-        if remote.path.isfile("config.inc.php.back"):
-            if remote.path.isfile("config.inc.php"):
-                remote.remove("config.inc.php")
-            remote.rename("config.inc.php.back","config.inc.php")
+        if remote.path.isfile("config_inc.php.back"):
+            if remote.path.isfile("config_inc.php"):
+                remote.remove("config_inc.php")
+            remote.rename("config_inc.php.back","config_inc.php")
 
 @pytest.fixture(scope="session", autouse=True)
 def stop(request):
